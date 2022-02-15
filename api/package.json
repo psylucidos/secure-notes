@@ -1,0 +1,32 @@
+{
+  "name": "secure-notes",
+  "version": "0.0.1",
+  "description": "Custom software for managing ice cream production.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run lint && npx nodemon index.js",
+    "lint": "npx eslint ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/psylucidos/secure-notes.git"
+  },
+  "author": "psylucidos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/psylucidos/secure-notes/issues"
+  },
+  "homepage": "https://github.com/psylucidos/secure-notes#readme",
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "dotenv": "^16.0.0",
+    "koa": "^2.13.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "nodemon": "^2.0.15"
+  }
+}
