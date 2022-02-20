@@ -2,7 +2,7 @@
   "name": "public",
   "version": "0.0.1",
   "description": "A Quasar Framework app",
-  "productName": "Yumbar Production",
+  "productName": "Secure Notes",
   "author": "psylucidos <psylucidos@gmail.com>",
   "private": true,
   "scripts": {

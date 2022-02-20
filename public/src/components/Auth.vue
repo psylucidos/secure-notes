@@ -52,7 +52,7 @@ export default defineComponent({
   methods: {
     onSubmit() {
       console.log(this.username, this.password); //eslint-disable-line
-      this.$router.push('/data');
+      this.$router.push('/notes');
     },
   },
 });

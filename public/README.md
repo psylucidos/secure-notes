@@ -1,4 +1,4 @@
-# Yumbar Production (public)
+# Secure Notes (public)
 
 A Quasar Framework app
 

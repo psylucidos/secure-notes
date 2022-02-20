@@ -142,8 +142,8 @@ module.exports = configure((ctx) => ({
     },
 
     manifest: {
-      name: 'Yumbar Production',
-      short_name: 'Yumbar Production',
+      name: 'Secure Notes',
+      short_name: 'Secure Notes',
       description: 'A Quasar Framework app',
       display: 'standalone',
       orientation: 'portrait',

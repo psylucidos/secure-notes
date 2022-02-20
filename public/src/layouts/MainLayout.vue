@@ -8,7 +8,7 @@
 
         <div>
           <q-tabs align="left">
-            <q-route-tab to="/notes" label="Notes" />
+            <q-route-tab to="/notes" v-if="hasAuth" label="Notes" />
             <q-route-tab to="/auth" :label="hasAuth ? 'Logout' : 'Login'" @click="logout()" />
           </q-tabs>
         </div>
