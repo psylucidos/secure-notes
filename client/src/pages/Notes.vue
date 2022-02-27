@@ -34,8 +34,8 @@
         <q-tab-panel v-for="note in notes" :name="note.id" :key="note.id">
           <div class="text-h4 q-mb-md">{{ note.content.split('<br/>')[0] }}</div>
           <p
-            class="editable"
-            @keydown="endEdit"
+            id="editable"
+            @keydown="onEdit"
             contenteditable="true"
           ></p>
           {{ note.content }}
@@ -102,6 +102,37 @@ function getCaretIndex(element) {
   return position;
 }
 
+function setCaret(elementID, position) {
+  const el = document.getElementById(elementID);
+  const range = document.createRange();
+  const sel = window.getSelection();
+
+  let currentPos = 0;
+  let passedPositions = 0;
+  for (let i = 0; i < el.childNodes.length; i += 1) {
+    const target = el.childNodes[i];
+    const content = target.data || target.innerHTML;
+    currentPos += content.length;
+    // console.log('CHILD', i, content, 'position', currentPos);
+    if (currentPos >= position) {
+      console.log(el.childNodes[i], currentPos, position);
+      console.log('selecting', position - passedPositions, 'of', el.childNodes[i]);
+      if (i >= 1) {
+        console.log('selecting', (position - passedPositions) - 1, 'instead');
+        range.setStart(el.childNodes[i].firstChild, position - passedPositions - 1);
+      } else {
+        range.setStart(el.childNodes[i], position - passedPositions);
+      }
+      range.collapse(true);
+      break;
+    }
+    passedPositions += content.length;
+  }
+
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 export default defineComponent({
   name: 'PageNotes',
   data() {
@@ -136,20 +167,37 @@ export default defineComponent({
       // }
       console.log('test');
     },
-    onEdit(e) {
-      const src = e.target.innerText;
-      this.notes[0].content = src;
-
-      console.log(parseMarkdown(src));
-
-      e.target.innerHTML = parseMarkdown(src);
-    },
+    // onEdit(e) {
+    //   const src = e.target.innerText;
+    //   this.notes[0].content = src;
+    //
+    //   console.log(parseMarkdown(src));
+    //
+    //   e.target.innerHTML = parseMarkdown(src);
+    // },
     onBlur() {
       console.log('blr');
     },
-    endEdit(e) {
-      console.log('endingz');
-      console.log(getCaretIndex(e.target));
+    onEdit(e) {
+      const currentCaretIndex = getCaretIndex(e.target);
+      const content = document.getElementById('editable').innerText;
+      // console.log(document.getElementById('editable'));
+
+      console.log('edited', e.key, 'index', currentCaretIndex, 'content', content);
+
+      if (document.getElementById('editable').innerHTML.length > 4) {
+        console.log('setting caret');
+        const index = window.getSelection().focusOffset;
+        console.log('index', index, window.getSelection());
+        if (window.getSelection().isCollapsed) {
+          e.target.innerHTML = parseMarkdown(content);
+          setCaret('editable', index, 0);
+        }
+      }
+
+      // const selection = window.getSelection();
+      // selection.extend(e.target, 2);
+
       // const el = document.getElementByClass('editable');
       // const selection = window.getSelection();
       // const range = document.createRange();
@@ -158,8 +206,7 @@ export default defineComponent({
       // range.collapse(false);
       // selection.addRange(range);
       // el.focus();
-      const selection = window.getSelection();
-      selection.extend(e.target, -3);
+
       // this.$el.querySelector('.editable').blur();
       // this.onEdit(e);
       // this.$el.querySelector('.editable').focus();
