@@ -36,9 +36,9 @@
           <p
             id="editable"
             @keyup="onEdit"
+            @mousedown="onMouseDown"
             contenteditable="true"
           ></p>
-          {{ note.content }}
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -67,23 +67,19 @@
 <script>
 import { defineComponent } from 'vue';
 
-function parseMarkdown(markdownText) {
+function parseMarkdown(markdownText) { // eslint-disable-line
   const htmlText = markdownText
-    .replace(/^### (.*$)/gim, '<h5>### $1</h5>')
-    .replace(/^## (.*$)/gim, '<h4>## $1</h4>')
-    .replace(/^# (.*$)/gim, '<h3># $1</h3>')
+    .replace(/^### (.*$)/gim, '<h5 style="margin: 0;">### $1</h5>')
+    .replace(/^## (.*$)/gim, '<h4 style="margin: 0;">## $1</h4>')
+    .replace(/^# (.*$)/gim, '<h3 style="margin: 0;"># $1</h3>')
     .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-    .replace(/\*\*(.*)\*\*/gim, '<b>**$1**</b>')
+    .replace(/\*(.*)\*/gim, '<b>*$1*</b>')
     .replace(/_(.*)_/gim, '<i>_$1_</i>')
     .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
-    .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>");
-    // .replace(/\n$/gim, '<br />');
+    .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>")
+    .replace(/\n/gim, '<br />');
 
   return htmlText;
-}
-
-function parseMarkdown(text) {
-  return sd.render(text);
 }
 
 function getCaretIndex(element) {
@@ -102,32 +98,48 @@ function getCaretIndex(element) {
   return position;
 }
 
-function setCaret(elementID, position) {
+function setCaret(elementID, position) { // eslint-disable-line
+  console.log('Setting caret...');
   const el = document.getElementById(elementID);
   const range = document.createRange();
   const sel = window.getSelection();
 
   let currentPos = 0;
   let passedPositions = 0;
+  console.log('Looping through', el.childNodes);
   for (let i = 0; i < el.childNodes.length; i += 1) {
     const target = el.childNodes[i];
+    console.log('Current Target', Object(target));
     const content = target.data || target.innerHTML;
-    currentPos += content.length;
-    // console.log('CHILD', i, content, 'position', currentPos);
-    if (currentPos >= position) {
-      console.log('child node', el.childNodes[i], 'current position', currentPos, 'postion?', position);
-      console.log('selecting', position - passedPositions, 'of', el.childNodes[i]);
-      if (el.childNodes[i].firstChild) {
-        console.log('going into first child');
-        range.setStart(el.childNodes[i].firstChild, position - passedPositions);
+    if (i !== 0) {
+      if (target.nodeName === 'BR' && el.childNodes[i - 1].nodeName === 'BR') {
+        console.log('last target was br, and this target is br, adding 1 to pos');
+        currentPos += 1;
       } else {
-        console.log('not going into child');
-        range.setStart(el.childNodes[i], position - passedPositions);
+        currentPos += content.length;
+      }
+    } else {
+      currentPos += content.length;
+    }
+
+    if (currentPos >= position) {
+      let rangePosition;
+      if (target.nodeName === 'BR') {
+        rangePosition = 0;
+      } else {
+        rangePosition = position - passedPositions;
+      }
+      console.log('setting caret to position', rangePosition, 'of', el.childNodes[i], 'or child');
+      if (el.childNodes[i].firstChild) {
+        range.setStart(el.childNodes[i].firstChild, rangePosition);
+      } else {
+        range.setStart(el.childNodes[i], rangePosition);
       }
       range.collapse(true);
       break;
     }
     passedPositions += content.length;
+    console.log('currentPos', currentPos, 'passedPositions', passedPositions);
   }
 
   sel.removeAllRanges();
@@ -139,34 +151,56 @@ export default defineComponent({
   data() {
     return {
       tab: 'mails',
-      notes: [
-        {
-          id: 0,
-          content: 'hello',
-        },
-        {
-          id: 1,
-          content: '# hello, again\nAnd wednesdays',
-        },
-      ],
+      notes: [],
     };
   },
+  created() {
+    console.log('Setting up!');
+    this.loadNotes();
+  },
   methods: {
+    loadNotes() {
+      console.log('Loaded in 1 note!');
+      this.notes.push({
+        id: 0,
+        content: 'hello',
+      });
+    },
     onEdit(e) {
-      const currentCaretIndex = getCaretIndex(e.target);
+      console.log('Note edit!');
+      const { keyCode } = e;
+
+      console.log('keycode:', keyCode);
+
+      if ((keyCode >= 49 && keyCode <= 90) || keyCode === 32) {
+        console.log('letter or number pressed');
+      } else if (keyCode === 37 // arrow left
+              || keyCode === 39 // arrow right
+              || keyCode === 38 // arrow up
+              || keyCode === 40) { // arrow down
+        console.log('arrow pressed');
+      } else if (keyCode === 8) {
+        console.log('delete button pressed');
+      } else if (keyCode === 13) {
+        console.log('ender button presed');
+        this.renderMarkdown(1);
+      }
+    },
+    onMouseDown(e) {
+      console.log('mouse down', e);
+      // this.renderMarkdown();
+    },
+    renderMarkdown() {
+      const currentCaretIndex = getCaretIndex(document.getElementById('editable'));
       const content = document.getElementById('editable').innerText;
-      console.log('key:', e.key, 'with keycode:', e.keyCode, 'index:', currentCaretIndex, 'content:', content);
-      if (e.keyCode >= 49 && e.keyCode <= 90) {
-        if (document.getElementById('editable').innerHTML.length > 4) {
-          console.log('SETTING caret');
-          console.log('index:', currentCaretIndex, 'selection:', window.getSelection());
-          console.log('content before parse:', content);
-          console.log('parsed', parseMarkdown(content));
-          if (window.getSelection().isCollapsed) {
-            e.target.innerHTML = parseMarkdown(content);
-            setCaret('editable', currentCaretIndex);
-          }
-        }
+
+      if (window.getSelection().isCollapsed) {
+        console.log('before', `${content}END`);
+        console.log('setting carret to', currentCaretIndex);
+        document.getElementById('editable').innerHTML = parseMarkdown(content);
+        console.log('after', document.getElementById('editable').innerHTML);
+        console.log(document.getElementById('editable'));
+        setCaret('editable', currentCaretIndex + 1);
       }
     },
   },
