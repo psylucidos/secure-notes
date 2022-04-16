@@ -4,9 +4,7 @@ import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot(),
     NotesModule
   ],
 })

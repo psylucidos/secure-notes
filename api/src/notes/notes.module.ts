@@ -5,7 +5,7 @@ import { NotesService } from './notes.service';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/note-app-db')
+    MongooseModule.forRoot(`mongodb://127.0.0.1:27017/${process.env.DBNAME}`)
   ],
   controllers: [NotesController],
   providers: [NotesService],
