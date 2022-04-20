@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { Owner } from '../appusers/appuser.schema';
+import * as mongoose from 'mongoose';
+import { Appuser } from '../appusers/appuser.schema';
 
-export type NoteDocument = Note & Document;
+export type NoteDocument = Note & mongoose.Document;
 
 @Schema()
 export class Note {
@@ -13,7 +13,7 @@ export class Note {
   content: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Appuser' })
-  owner: Owner;
+  owner: Appuser;
 }
 
 export const NoteSchema = SchemaFactory.createForClass(Note);
