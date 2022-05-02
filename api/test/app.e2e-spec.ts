@@ -1,24 +1,54 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { Test } from '@nestjs/testing';
+import { NotesModule } from '../src/notes/notes.module';
+import { DatabaseModule } from '../src/database/database.module';
+import { INestApplication } from '@nestjs/common';
 
-describe('AppController (e2e)', () => {
+describe('Notes', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [NotesModule, DatabaseModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleRef.createNestApplication();
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it(`/GET notes`, () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/notes')
       .expect(200)
-      .expect('Hello World!');
+      .expect([]);
+  });
+
+  it(`/GET notes/:id`, () => {
+    return request(app.getHttpServer())
+      .get('/notes/626f6025358aaecf5a34a811')
+      .expect(200)
+      .expect([
+        {
+          "_id":"626f6025358aaecf5a34a811",
+          "title":"hello",
+          "content":"hi my friend!",
+          "owner":"626f5fd7a7f528ceb5fa94d5","__v":0
+        }
+      ]);
+  });
+
+  it(`/POST notes/`, () => {
+    return request(app.getHttpServer())
+      .post('/notes')
+      .send({
+        title: 'hello',
+        content: 'hi my friend!',
+        owner: '626f5fd7a7f528ceb5fa94d5'
+      })
+      .expect(201);
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });
