@@ -34,8 +34,4 @@ export class NotesService {
       .exec();
     return targetNote;
   }
-
-  getHello(): string {
-    return 'Hello World!';
-  }
 }
