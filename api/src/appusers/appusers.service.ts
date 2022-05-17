@@ -10,8 +10,8 @@ export class AppusersService {
   constructor(@InjectModel(Appuser.name) private appuserModel: Model<AppuserDocument>) {}
 
   async create(createAppuserDto: CreateAppuserDto): Promise<Appuser> {
-    const createdAppuser = new this.appuserModel(createAppuserDto);
-    return createdAppuser.save();
+    const createdAppuser = await this.appuserModel.create(createAppuserDto);
+    return createdAppuser;
   }
 
   async findAll(): Promise<Appuser[]> {
@@ -22,8 +22,8 @@ export class AppusersService {
     return this.appuserModel.findOne({ _id: id }).exec();
   }
 
-  async findByUsernameAndPassword(username: string, password: string): Promise<Appuser> {
-    return this.appuserModel.findOne({ username, password }).exec();
+  async findByUsername(username: string): Promise<Appuser> {
+    return this.appuserModel.findOne({ username }).exec();
   }
 
   async updateOne(newAppuser: UpdateAppuserDto): Promise<boolean> {

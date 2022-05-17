@@ -4,8 +4,14 @@ import { AppuserDto } from './dtos/appuser.dto';
 import { Appuser } from '../appusers/appuser.schema';
 
 @Controller('auth')
-export class NotesController {
+export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @HttpCode(200)
+  @Get()
+  async ping(@Body() userData: AppuserDto): Promise<String> {
+    return 'Pong!';
+  }
 
   @HttpCode(201)
   @Post()

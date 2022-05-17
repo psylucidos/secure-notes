@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { AppusersService } from '../appusers/appusers.service';
 import { AppuserDto } from './dtos/appuser.dto';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
@@ -8,9 +8,9 @@ export class AuthService {
   constructor(private appusersService: AppusersService) {}
 
   async validateUser(username: string, password: string): Promise<boolean> {
-    const targetAppuser = await this.appusersService.findByUsernameAndPassword(username, password);
+    const targetAppuser = await this.appusersService.findByUsername(username);
 
-    if (targetAppuser.username) {
+    if (targetAppuser) {
       const [salt, key] = targetAppuser.password.split(':');
       const hashedBuffer = scryptSync(password, salt, 64);
       const keyBuffer = Buffer.from(key, 'hex');
@@ -19,8 +19,10 @@ export class AuthService {
       if (match) {
         return true;
       } else {
-        return false;
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
       }
+    } else {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
   }
 
@@ -36,7 +38,7 @@ export class AuthService {
     if (newUser) {
       return newUser;
     } else {
-      return null;
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
   }
 }
