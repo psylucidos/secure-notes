@@ -1,13 +1,14 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
+import { ObjectId } from 'mongoose';
 import { AppusersService } from '../appusers/appusers.service';
 import { AppuserDto } from './dtos/appuser.dto';
-import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(private appusersService: AppusersService) {}
 
-  async validateUser(username: string, password: string): Promise<boolean> {
+  async validateUser(username: string, password: string): Promise<string> {
     const targetAppuser = await this.appusersService.findByUsername(username);
 
     if (targetAppuser) {
@@ -17,7 +18,7 @@ export class AuthService {
       const match = timingSafeEqual(hashedBuffer, keyBuffer);
 
       if (match) {
-        return true;
+        return targetAppuser._id;
       } else {
         throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
       }
@@ -26,19 +27,25 @@ export class AuthService {
     }
   }
 
-  async registerUser(username: string, password: string): Promise<any> {
-    const salt = randomBytes(16).toString('hex');
-    const hashedPassword = scryptSync(password, salt, 64).toString('hex');
-    const userPassword = `${salt}:${hashedPassword}`;
-    const newUser = await this.appusersService.create({
-      username,
-      password: userPassword
-    });
+  async registerUser(username: string, password: string): Promise<string> {
+    const targetAppuser = await this.appusersService.findByUsername(username);
 
-    if (newUser) {
-      return newUser;
-    } else {
+    if (targetAppuser) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    } else {
+      const salt = randomBytes(16).toString('hex');
+      const hashedPassword = scryptSync(password, salt, 64).toString('hex');
+      const userPassword = `${salt}:${hashedPassword}`;
+      const newUser = await this.appusersService.create({
+        username,
+        password: userPassword
+      });
+
+      if (newUser) {
+        return newUser._id;
+      } else {
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      }
     }
   }
 }
